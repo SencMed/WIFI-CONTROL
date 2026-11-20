@@ -8,7 +8,7 @@ import '../models/network_device.dart';
 class LanDeviceDiscoveryService {
   static const List<int> _ports = [80, 443, 22, 445, 5555, 62078];
   static const int _maxConcurrentHosts = 24;
-  static const Duration _timeout = Duration(milliseconds: 450);
+  static const Duration _timeout = Duration(milliseconds: 350);
 
   Future<List<NetworkDevice>> discover({
     required String localIp,
@@ -47,27 +47,26 @@ class LanDeviceDiscoveryService {
   }
 
   Future<List<int>> _openPorts(String host) async {
-    final open = <int>[];
-    for (final port in _ports) {
+    final checks = await Future.wait(_ports.map((port) async {
       Socket? socket;
       try {
         socket = await Socket.connect(host, port, timeout: _timeout);
-        open.add(port);
+        return port;
       } on SocketException {
-        // Closed or filtered.
+        return null;
       } on TimeoutException {
-        // No response within the short timeout.
+        return null;
       } finally {
         socket?.destroy();
       }
-    }
-    return open;
+    }));
+    return checks.whereType<int>().toList()..sort();
   }
 
   List<String> _hostsInSubnet(String localIp, String subnetMask) {
     final ip = _ipv4ToInt(localIp);
     final mask = _ipv4ToInt(subnetMask);
-    if (ip == null || mask == null) {
+    if (ip == null || mask == null || !_isContiguousMask(mask)) {
       throw const FormatException('IP local o máscara IPv4 no válida.');
     }
     final network = ip & mask;
@@ -83,6 +82,11 @@ class LanDeviceDiscoveryService {
       for (var address = first; address <= last; address++)
         if (address != ip) _intToIpv4(address),
     ];
+  }
+
+  bool _isContiguousMask(int mask) {
+    final inverted = (~mask) & 0xFFFFFFFF;
+    return (inverted & (inverted + 1)) == 0;
   }
 
   int? _ipv4ToInt(String value) {
