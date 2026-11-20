@@ -1,0 +1,21 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Secrets and local configuration
+.env
+.env.*
+*.keystore
+*.jks
+key.properties
+secrets/
