@@ -41,8 +41,8 @@ abstract class DocumentedRouterAdapter implements RouterAdapter {
   @override
   Future<List<NetworkDevice>> getConnectedDevices() {
     throw UnsupportedError(
-      'La lectura automática de dispositivos aún no está verificada '
-      'para \${profile.manufacturer} \${profile.model}.',
+      'La lectura automática de dispositivos aún no está verificada para ' +
+      profile.manufacturer + ' ' + profile.model + '.',
     );
   }
 
