@@ -5,8 +5,8 @@ void main() {
   group('LanDeviceDiscoveryService', () {
     test('rechaza una dirección IPv4 no válida', () async {
       final service = LanDeviceDiscoveryService();
-      expect(
-        () => service.discover(
+      await expectLater(
+        service.discover(
           localIp: '192.168.1.300',
           subnetMask: '255.255.255.0',
         ),
@@ -16,10 +16,32 @@ void main() {
 
     test('rechaza una máscara IPv4 no válida', () async {
       final service = LanDeviceDiscoveryService();
-      expect(
-        () => service.discover(
+      await expectLater(
+        service.discover(
           localIp: '192.168.1.20',
           subnetMask: '255.255.0',
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test('rechaza máscaras no contiguas', () async {
+      final service = LanDeviceDiscoveryService();
+      await expectLater(
+        service.discover(
+          localIp: '192.168.1.20',
+          subnetMask: '255.0.255.0',
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test('rechaza subredes demasiado grandes', () async {
+      final service = LanDeviceDiscoveryService();
+      await expectLater(
+        service.discover(
+          localIp: '10.0.0.20',
+          subnetMask: '255.0.0.0',
         ),
         throwsFormatException,
       );
