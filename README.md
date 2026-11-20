@@ -6,7 +6,7 @@ Aplicación multiplataforma en Flutter para descubrir y administrar routers comp
 
 Versión inicial del proyecto (0.1.0). Incluye estructura de aplicación, pantalla principal, fichas de referencia para equipos de prueba y una interfaz común para futuros adaptadores de router.
 
-**Importante:** la detección de red, autenticación, lectura de dispositivos y cambios de configuración todavía no están implementados. Los perfiles Huawei y KAON son referencias documentadas, no integraciones funcionales.
+**Importante:** la detección inicial de red y una exploración local preliminar por puertos TCP ya están implementadas. La autenticación en routers, la lectura directa de sus listas de clientes y los cambios de configuración todavía no están implementados. Los perfiles Huawei y KAON incluyen adaptadores de referencia seguros, no integraciones completas.
 
 ## Equipos de referencia
 
@@ -73,3 +73,16 @@ No guardar contraseñas de routers, tokens, claves privadas ni datos sensibles e
 - `lib/services/`: contrato de adaptadores y catálogo de perfiles.
 - `lib/screens/`: interfaz de usuario.
 - `test/`: pruebas automatizadas iniciales.
+
+## Exploración preliminar de dispositivos locales
+
+La pantalla de detección permite iniciar manualmente una búsqueda IPv4 dentro de la subred del teléfono. La exploración prueba, con concurrencia limitada y tiempos de espera breves, los puertos TCP habituales 80, 443, 22, 445, 5555 y 62078.
+
+- La búsqueda es de solo lectura: no inicia sesión ni modifica equipos.
+- Solo aparecen dispositivos que respondan en alguno de esos puertos.
+- Los equipos que bloquean esos puertos pueden no aparecer, aunque estén conectados.
+- El nombre mostrado describe el servicio detectado, no el nombre real del dispositivo.
+- La dirección MAC, fabricante, banda Wi-Fi y velocidad de enlace no se obtienen con este método.
+- La lista del router sigue siendo la fuente más fiable para conocer todos los clientes conectados.
+
+La disponibilidad del escaneo depende de los permisos y restricciones de red local de cada sistema operativo. Esta función debe probarse en iOS y Android antes de considerarse validada.
