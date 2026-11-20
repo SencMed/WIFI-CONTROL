@@ -96,7 +96,7 @@ class _NetworkScanScreenState extends State<NetworkScanScreen> {
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: _loading ? null : _scan,
+            onPressed: _loading || _devicesLoading ? null : _scan,
             icon: _loading
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.radar),
