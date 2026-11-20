@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/network_device.dart';
 import '../services/network_discovery_service.dart';
 import '../services/router_fingerprint_service.dart';
 import '../services/lan_device_discovery_service.dart';
