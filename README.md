@@ -57,6 +57,12 @@ En `android/app/src/main/AndroidManifest.xml`, dentro de `<manifest>` y antes de
 
 La app solicita permiso de ubicación en tiempo de ejecución en Android para intentar leer el nombre de la red Wi-Fi. Si se deniega, intenta continuar con los demás datos disponibles.
 
+## Identificación inicial del router
+
+Después de leer la puerta de enlace, WIFI CONTROL realiza solicitudes HTTP GET de solo lectura a algunas rutas locales habituales y busca indicios en el título, cabeceras y contenido público de la página. La primera heurística reconoce menciones a Huawei/EchoLife/HG8245 y KAON/CG3000.
+
+Esto es una **huella preliminar**, no una identificación garantizada: muchos operadores personalizan u ocultan el panel, usan HTTPS o bloquean HTTP. No se envían credenciales, no se siguen redirecciones a otros dominios y no se modifican configuraciones. El modelo exacto debe confirmarse antes de seleccionar un adaptador específico.
+
 ## Seguridad
 
 No guardar contraseñas de routers, tokens, claves privadas ni datos sensibles en el repositorio. Solicitar autenticación local de forma segura cuando se implemente cada adaptador. No realizar cambios de configuración sin confirmación explícita del usuario.
