@@ -8,6 +8,7 @@ class NetworkDevice {
   final String bandOrSsid;
   final int? signalDbm;
   final double? linkRateMbps;
+  final List<int> detectedPorts;
   final DeviceConnectionStatus status;
 
   const NetworkDevice({
@@ -18,6 +19,7 @@ class NetworkDevice {
     required this.bandOrSsid,
     this.signalDbm,
     this.linkRateMbps,
+    this.detectedPorts = const [],
     this.status = DeviceConnectionStatus.unknown,
   });
 }
