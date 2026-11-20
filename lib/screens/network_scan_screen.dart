@@ -184,7 +184,7 @@ class _NetworkScanScreenState extends State<NetworkScanScreen> {
                       leading: const Icon(Icons.devices_other,
                           color: Color(0xFF1769AA)),
                       title: Text(device.ipAddress),
-                      subtitle: Text('${device.name}\\nPuertos TCP: ${device.detectedPorts.join(', ')}'),
+                      subtitle: Text('${device.name}\nPuertos TCP: ${device.detectedPorts.join(', ')}'),
                       isThreeLine: true,
                       trailing: const Icon(Icons.check_circle,
                           color: Colors.green),
