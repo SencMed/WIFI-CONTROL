@@ -3,8 +3,8 @@ import 'dart:io';
 
 import '../models/network_device.dart';
 
-/// Best-effort discovery of local IPv4 hosts through a small set of common
-/// TCP services. Devices without an open service may not be detected.
+/// Best-effort discovery of local IPv4 hosts through common TCP services.
+/// Devices without an open service may not be detected.
 class LanDeviceDiscoveryService {
   static const List<int> _ports = [80, 443, 22, 445, 5555, 62078];
   static const int _maxConcurrentHosts = 24;
@@ -23,14 +23,15 @@ class LanDeviceDiscoveryService {
         final index = next++;
         if (index >= targets.length) return;
         final host = targets[index];
-        final port = await _firstOpenPort(host);
-        if (port != null) {
+        final openPorts = await _openPorts(host);
+        if (openPorts.isNotEmpty) {
           found.add(NetworkDevice(
-            name: _labelForPort(port),
+            name: _describePorts(openPorts),
             ipAddress: host,
             macAddress: 'No disponible',
             connectionType: 'Red local',
             bandOrSsid: 'No identificado',
+            detectedPorts: openPorts,
             status: DeviceConnectionStatus.online,
           ));
         }
@@ -45,21 +46,22 @@ class LanDeviceDiscoveryService {
     return found;
   }
 
-  Future<int?> _firstOpenPort(String host) async {
+  Future<List<int>> _openPorts(String host) async {
+    final open = <int>[];
     for (final port in _ports) {
       Socket? socket;
       try {
         socket = await Socket.connect(host, port, timeout: _timeout);
-        return port;
+        open.add(port);
       } on SocketException {
-        // This port is closed or filtered; try the next common service.
+        // Closed or filtered.
       } on TimeoutException {
-        // Continue with the next port.
+        // No response within the short timeout.
       } finally {
         socket?.destroy();
       }
     }
-    return null;
+    return open;
   }
 
   List<String> _hostsInSubnet(String localIp, String subnetMask) {
@@ -77,7 +79,6 @@ class LanDeviceDiscoveryService {
         'El rango de red es demasiado grande para el escaneo inicial.',
       );
     }
-
     return [
       for (var address = first; address <= last; address++)
         if (address != ip) _intToIpv4(address),
@@ -106,22 +107,25 @@ class LanDeviceDiscoveryService {
   int _compareIpv4(String a, String b) =>
       (_ipv4ToInt(a) ?? 0).compareTo(_ipv4ToInt(b) ?? 0);
 
-  String _labelForPort(int port) {
-    switch (port) {
-      case 80:
-        return 'Dispositivo · servicio web';
-      case 443:
-        return 'Dispositivo · servicio seguro';
-      case 22:
-        return 'Dispositivo · SSH';
-      case 445:
-        return 'Dispositivo · SMB';
-      case 5555:
-        return 'Dispositivo · servicio Android';
-      case 62078:
-        return 'Dispositivo · servicio móvil';
-      default:
-        return 'Dispositivo detectado';
-    }
+  String _describePorts(List<int> ports) {
+    final labels = ports.map((port) {
+      switch (port) {
+        case 80:
+          return 'Web';
+        case 443:
+          return 'Web seguro';
+        case 22:
+          return 'SSH';
+        case 445:
+          return 'Compartir archivos';
+        case 5555:
+          return 'Servicio Android';
+        case 62078:
+          return 'Servicio móvil';
+        default:
+          return 'TCP $port';
+      }
+    }).toList();
+    return labels.join(' · ');
   }
 }
