@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/network_discovery_service.dart';
 import '../services/router_fingerprint_service.dart';
+import '../services/lan_device_discovery_service.dart';
 
 class NetworkScanScreen extends StatefulWidget {
   const NetworkScanScreen({super.key});
@@ -12,11 +13,38 @@ class NetworkScanScreen extends StatefulWidget {
 class _NetworkScanScreenState extends State<NetworkScanScreen> {
   final NetworkDiscoveryService _discovery = NetworkDiscoveryService();
   final RouterFingerprintService _fingerprinter = RouterFingerprintService();
+  final LanDeviceDiscoveryService _deviceDiscovery = LanDeviceDiscoveryService();
+  List<NetworkDevice> _devices = [];
+  bool _devicesLoading = false;
+  String? _devicesError;
   RouterFingerprint? _fingerprint;
   bool _identifying = false;
   LocalNetworkSnapshot? _snapshot;
   bool _loading = false;
   String? _error;
+
+  Future<void> _scanDevices() async {
+    final snapshot = _snapshot;
+    if (snapshot?.localIp == null || snapshot?.subnetMask == null) return;
+    setState(() {
+      _devicesLoading = true;
+      _devicesError = null;
+      _devices = [];
+    });
+    try {
+      final devices = await _deviceDiscovery.discover(
+        localIp: snapshot!.localIp!,
+        subnetMask: snapshot.subnetMask!,
+      );
+      if (!mounted) return;
+      setState(() => _devices = devices);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _devicesError = 'No se pudo explorar la red: $error');
+    } finally {
+      if (mounted) setState(() => _devicesLoading = false);
+    }
+  }
 
   Future<void> _scan() async {
     setState(() {
@@ -24,6 +52,8 @@ class _NetworkScanScreenState extends State<NetworkScanScreen> {
       _error = null;
       _snapshot = null;
       _fingerprint = null;
+      _devices = [];
+      _devicesError = null;
       _identifying = false;
     });
     try {
@@ -112,6 +142,59 @@ class _NetworkScanScreenState extends State<NetworkScanScreen> {
               const Text('La identificación se basa en indicios públicos de la página local; no es una confirmación del modelo y no inicia sesión ni cambia ajustes.', style: TextStyle(color: Colors.black54, fontSize: 12)),
             ] else
               const Card(child: ListTile(title: Text('No se pudo revisar el panel'), subtitle: Text('La puerta de enlace no respondió por HTTP o no se encontró una página accesible.'))),
+
+            const SizedBox(height: 18),
+            const Text('Dispositivos de la red local',
+                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: _devicesLoading ||
+                      data.localIp == null ||
+                      data.subnetMask == null
+                  ? null
+                  : _scanDevices,
+              icon: _devicesLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.devices),
+              label: Text(_devicesLoading
+                  ? 'Buscando dispositivos...'
+                  : 'Buscar dispositivos en mi red'),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'La búsqueda prueba algunos puertos TCP habituales. Solo encontrará equipos que respondan en esos puertos; no obtiene nombres reales ni direcciones MAC.',
+              style: TextStyle(color: Colors.black54, fontSize: 12),
+            ),
+            if (_devicesError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_devicesError!,
+                    style: const TextStyle(color: Colors.red)),
+              ),
+            if (!_devicesLoading && _devices.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('${_devices.length} dispositivo(s) detectado(s)',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              ..._devices.map((device) => Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.devices_other,
+                          color: Color(0xFF1769AA)),
+                      title: Text(device.ipAddress),
+                      subtitle: Text(device.name),
+                      trailing: const Icon(Icons.check_circle,
+                          color: Colors.green),
+                    ),
+                  )),
+            ] else if (!_devicesLoading && _devicesError == null) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Todavía no se ha realizado la búsqueda o no se detectaron equipos con puertos abiertos.',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 8),
             const Text(
               'La exploración es de solo lectura: no envía contraseñas ni modifica el router.',
