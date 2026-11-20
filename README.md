@@ -38,6 +38,25 @@ flutter test
 flutter run
 ```
 
+## Detección inicial de red
+
+La pantalla **Detectar mi red** consulta el SSID (cuando el sistema lo permite), la IP local, la puerta de enlace y la máscara de red mediante `network_info_plus`. También prueba una conexión TCP breve a los puertos 80 y 443 de la puerta de enlace.
+
+Esta prueba **no identifica por sí sola el fabricante/modelo**, no garantiza que el panel web esté disponible y no modifica el router. En iOS, la información Wi-Fi puede estar limitada por los requisitos de Apple (entitlement y autorización); en Android, el SSID puede requerir permiso de ubicación y que los servicios de ubicación estén activos.
+
+### Permisos Android para la detección
+
+En `android/app/src/main/AndroidManifest.xml`, dentro de `<manifest>` y antes de `<application>`, declarar los permisos que utiliza la app:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+```
+
+La app solicita permiso de ubicación en tiempo de ejecución en Android para intentar leer el nombre de la red Wi-Fi. Si se deniega, intenta continuar con los demás datos disponibles.
+
 ## Seguridad
 
 No guardar contraseñas de routers, tokens, claves privadas ni datos sensibles en el repositorio. Solicitar autenticación local de forma segura cuando se implemente cada adaptador. No realizar cambios de configuración sin confirmación explícita del usuario.
