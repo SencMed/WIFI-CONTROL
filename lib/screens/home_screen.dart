@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/router_registry.dart';
 import 'router_detail_screen.dart';
+import 'network_scan_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -54,6 +55,12 @@ class HomeScreen extends StatelessWidget {
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => RouterDetailScreen(profile: profile))),
             ),
           )),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NetworkScanScreen())),
+            icon: const Icon(Icons.radar),
+            label: const Text('Detectar mi red'),
+          ),
           const SizedBox(height: 16),
           const Text('Módulos', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
