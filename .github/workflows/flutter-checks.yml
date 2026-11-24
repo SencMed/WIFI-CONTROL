@@ -29,6 +29,8 @@ jobs:
           cache: true
       - name: Generate Android platform files
         run: flutter create --platforms=android .
+      - name: Allow local router HTTP panels in WebView
+        run: sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
       - name: Install dependencies
         run: flutter pub get
       - name: Analyze
