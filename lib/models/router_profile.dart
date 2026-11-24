@@ -35,7 +35,7 @@ class RouterProfile {
     vendor: RouterVendor.kaon,
     manufacturer: 'KAON',
     model: 'CG3000',
-    localAddress: 'Por detectar',
+    localAddress: '192.168.1.1',
     connectionType: 'Cable / DOCSIS',
   );
 }
