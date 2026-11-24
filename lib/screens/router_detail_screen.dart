@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../models/router_capability.dart';
 import '../models/router_profile.dart';
 import '../services/router_registry.dart';
@@ -42,6 +43,33 @@ class RouterDetailScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: profile.localAddress == 'Por detectar' || profile.localAddress.isEmpty
+                  ? null
+                  : () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RouterWebViewScreen(
+                            title: '${profile.manufacturer} ${profile.model}',
+                            address: profile.localAddress,
+                          ),
+                        ),
+                      ),
+              icon: const Icon(Icons.open_in_browser),
+              label: const Text('Abrir panel del router'),
+            ),
+          ),
+          if (profile.localAddress == 'Por detectar')
+            const Padding(
+              padding: EdgeInsets.only(top: 6),
+              child: Text(
+                'Detectá primero la red para obtener la dirección del KAON.',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+            ),
           const SizedBox(height: 12),
           Text('Compatibilidad del equipo',
               style: Theme.of(context).textTheme.titleLarge),
@@ -123,5 +151,51 @@ class _InfoRow extends StatelessWidget {
             ),
           ],
         ),
+      );
+}
+
+
+class RouterWebViewScreen extends StatefulWidget {
+  final String title;
+  final String address;
+  const RouterWebViewScreen({super.key, required this.title, required this.address});
+
+  @override
+  State<RouterWebViewScreen> createState() => _RouterWebViewScreenState();
+}
+
+class _RouterWebViewScreenState extends State<RouterWebViewScreen> {
+  late final WebViewController _controller;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final rawAddress = widget.address.startsWith('http://') || widget.address.startsWith('https://')
+        ? widget.address
+        : 'http://${widget.address}';
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageStarted: (_) => setState(() => _loading = true),
+        onPageFinished: (_) => setState(() => _loading = false),
+        onWebResourceError: (_) => setState(() => _loading = false),
+      ))
+      ..loadRequest(Uri.parse(rawAddress));
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: Text(widget.title), actions: [
+          IconButton(
+            tooltip: 'Actualizar',
+            onPressed: () => _controller.reload(),
+            icon: const Icon(Icons.refresh),
+          ),
+        ]),
+        body: Column(children: [
+          if (_loading) const LinearProgressIndicator(),
+          Expanded(child: WebViewWidget(controller: _controller)),
+        ]),
       );
 }
