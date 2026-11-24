@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'router_detail_screen.dart';
 import '../models/network_device.dart';
 import '../services/network_discovery_service.dart';
 import '../services/router_fingerprint_service.dart';
@@ -114,6 +115,29 @@ class _NetworkScanScreenState extends State<NetworkScanScreen> {
             _ResultTile(icon: Icons.phone_iphone, label: 'IP de este dispositivo', value: data.localIp ?? 'No disponible'),
             _ResultTile(icon: Icons.router, label: 'Puerta de enlace', value: data.gatewayIp ?? 'No disponible'),
             _ResultTile(icon: Icons.lan, label: 'Máscara de red', value: data.subnetMask ?? 'No disponible'),
+            if (data.gatewayIp != null) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RouterWebViewScreen(
+                        title: 'Panel del router detectado',
+                        address: data.gatewayIp!,
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.open_in_browser),
+                  label: const Text('Abrir panel del router detectado'),
+                ),
+              ),
+              const Text(
+                'Se abrirá la puerta de enlace de la red actual, sin asumir si es Huawei, KAON u otra marca.',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+            ],
             Card(
               child: ListTile(
                 leading: Icon(
