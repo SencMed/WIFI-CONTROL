@@ -73,12 +73,24 @@ class RouterFingerprintService {
     }
 
     final fingerprintText = evidence.join(' ').toLowerCase();
-    final huawei = fingerprintText.contains('huawei') ||
-        fingerprintText.contains('echolife') ||
-        fingerprintText.contains('hg8245');
-    final kaon = fingerprintText.contains('kaon') ||
-        fingerprintText.contains('cg3000');
+    // Require model-family evidence to avoid labeling a generic/login page
+    // as a vendor when the page contains incidental brand strings.
+    final huawei = fingerprintText.contains('hg8245w5') ||
+        fingerprintText.contains('hg8245') ||
+        fingerprintText.contains('echolife');
+    final kaon = fingerprintText.contains('cg3000');
 
+    if (huawei && kaon) {
+      return RouterFingerprint(
+        gatewayIp: gatewayIp,
+        vendor: RouterFingerprintVendor.unknown,
+        manufacturer: 'Puerta de enlace',
+        serverHeader: server,
+        pageTitle: title,
+        checkedUrl: checkedUrl,
+        note: 'La página contiene indicios de más de un fabricante; no se confirma el modelo automáticamente.',
+      );
+    }
     if (huawei) {
       return RouterFingerprint(
         gatewayIp: gatewayIp,
